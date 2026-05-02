@@ -19,6 +19,10 @@ from app.models.documento import Documento
 from app.models.vale import Vale
 from app.models.comprobante import ComprobantePago
 from app.models.comunicacion import PlantillaEmail, EmailEnviado
+from app.models.conciliacion import ConciliacionBancaria, LineaBancaria
+from app.models.presupuesto import PresupuestoItem, CierreAño
+from app.models.reporte import ReporteJob
+
 
 
 

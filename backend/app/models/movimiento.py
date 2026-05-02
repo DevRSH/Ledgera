@@ -41,6 +41,9 @@ class Movimiento(Base):
     anulado_por: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("usuarios.id"), nullable=True)
     anulado_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     motivo_anulacion: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    conciliado: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
 
     # Relationships
     categoria: Mapped[Optional["CategoriaMovimiento"]] = relationship()
