@@ -25,9 +25,11 @@ async def upload_documento(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(get_current_user)
 ) -> Any:
-    """
-    Upload a document and save metadata.
-    """
+    # Sube un documento al almacenamiento.
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+    if file.size > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="El archivo excede el límite de 10MB")
+
     content = await file.read()
     ext = f".{file.filename.split('.')[-1]}" if '.' in file.filename else ""
     

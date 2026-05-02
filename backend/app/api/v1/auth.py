@@ -19,7 +19,7 @@ import pyotp
 router = APIRouter()
 
 @router.post("/login", response_model=LoginResponse)
-@limiter.limit("5/minute")
+@limiter.limit("5/5minutes")
 async def login(
     request: Request,
     login_request: LoginRequest,

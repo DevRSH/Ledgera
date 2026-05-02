@@ -17,7 +17,7 @@ const alumno = ref<any>(null);
 const estadoDeuda = ref<any>(null);
 const activeTab = ref('datos');
 const showPagoModal = ref(false);
-const selectedMes = ref<number | null>(null);
+const selectedMes = ref<number>();
 
 const fetchDatos = async () => {
   loading.value = true;

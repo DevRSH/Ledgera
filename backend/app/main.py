@@ -5,6 +5,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from contextlib import asynccontextmanager
+from app import models  # Force model registration
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
