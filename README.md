@@ -1,4 +1,4 @@
-# TesoApp 🏦
+# Ledgera 🏦
 
 Sistema de Tesorería para Cursos Escolares (Chile).
 
