@@ -40,3 +40,62 @@ async def client(db):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+
+@pytest_asyncio.fixture
+async def user_tesorero(db: AsyncSession):
+    user = Usuario(
+        id=uuid.uuid4(), email="tesorero@test.com", password_hash="hash",
+        rol="TESORERO", tenant_id=uuid.uuid4(), activo=True
+    )
+    db.add(user)
+    await db.commit()
+    return user
+
+@pytest_asyncio.fixture
+async def user_auditor(db: AsyncSession):
+    user = Usuario(
+        id=uuid.uuid4(), email="auditor@test.com", password_hash="hash",
+        rol="AUDITOR", tenant_id=uuid.uuid4(), activo=True
+    )
+    db.add(user)
+    await db.commit()
+    return user
+
+@pytest_asyncio.fixture
+async def user_directiva(db: AsyncSession):
+    user = Usuario(
+        id=uuid.uuid4(), email="directiva@test.com", password_hash="hash",
+        rol="DIRECTIVA", tenant_id=uuid.uuid4(), activo=True
+    )
+    db.add(user)
+    await db.commit()
+    return user
+
+@pytest_asyncio.fixture
+async def user_apoderado(db: AsyncSession):
+    user = Usuario(
+        id=uuid.uuid4(), email="apoderado@test.com", password_hash="hash",
+        rol="APODERADO", tenant_id=uuid.uuid4(), activo=True
+    )
+    db.add(user)
+    await db.commit()
+    return user
+
+from app.core.security import create_access_token
+from datetime import timedelta
+
+@pytest.fixture
+def token_tesorero(user_tesorero):
+    return create_access_token(user_tesorero.id, expires_delta=timedelta(minutes=10))
+
+@pytest.fixture
+def token_auditor(user_auditor):
+    return create_access_token(user_auditor.id, expires_delta=timedelta(minutes=10))
+
+@pytest.fixture
+def token_directiva(user_directiva):
+    return create_access_token(user_directiva.id, expires_delta=timedelta(minutes=10))
+
+@pytest.fixture
+def token_apoderado(user_apoderado):
+    return create_access_token(user_apoderado.id, expires_delta=timedelta(minutes=10))
