@@ -1,0 +1,27 @@
+[project]
+name = "tesoapp-backend"
+version = "0.1.0"
+description = "Backend for TesoApp"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "asyncpg",
+    "pydantic-settings",
+    "pydantic[email]",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "python-multipart",
+    "alembic",
+    "redis",
+    "pyotp",
+    "qrcode",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
