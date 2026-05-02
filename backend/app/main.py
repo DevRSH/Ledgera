@@ -9,37 +9,11 @@ print("🚀 Iniciando Ledgera Backend...")
 from contextlib import asynccontextmanager
 from app.db_init import init_first_user
 
-import subprocess
-import sys
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Execute on startup
-    print("🛠️ Intentando ejecutar migraciones de base de datos...")
-    try:
-        # Run alembic migrations as a subprocess to avoid event loop conflicts
-        result = subprocess.run(
-            ["alembic", "upgrade", "head"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        print(f"✅ Migraciones completadas:\n{result.stdout}")
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error crítico en las migraciones:\n{e.stderr}")
-    except Exception as e:
-        print(f"❌ Error inesperado al ejecutar alembic: {e}")
-        
-    try:
-        print("👤 Verificando usuario administrador...")
-        await init_first_user()
-    except Exception as e:
-        print(f"⚠️ No se pudo inicializar el usuario: {e}")
+    # The start.sh script handles migrations and initial seeding
     yield
 
-
-
-    # Execute on shutdown
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
