@@ -1,9 +1,16 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 
+let baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Limpieza automática de /v1 duplicados
+if (baseUrl.endsWith('/v1')) {
+  baseUrl = baseUrl.slice(0, -3);
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: `${baseUrl}/v1`,
 });
+
 
 api.interceptors.request.use((config) => {
   const authStore = useAuthStore();
