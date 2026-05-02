@@ -33,6 +33,36 @@ const router = createRouter({
           component: () => import('../views/alumnos/AlumnoList.vue')
         },
         {
+          path: 'alumnos/nuevo',
+          name: 'AlumnoNuevo',
+          component: () => import('../views/alumnos/AlumnoForm.vue'),
+          meta: { roles: ['TESORERO', 'SUPER_ADMIN'] }
+        },
+        {
+          path: 'alumnos/:id',
+          name: 'AlumnoDetalle',
+          component: () => import('../views/alumnos/AlumnoDetalle.vue'),
+          props: true
+        },
+        {
+          path: 'alumnos/:id/editar',
+          name: 'AlumnoEditar',
+          component: () => import('../views/alumnos/AlumnoForm.vue'),
+          props: true,
+          meta: { roles: ['TESORERO', 'SUPER_ADMIN'] }
+        },
+        {
+          path: 'movimientos',
+          name: 'Movimientos',
+          component: () => import('../views/movimientos/MovimientoList.vue')
+        },
+        {
+          path: 'conciliacion',
+          name: 'Conciliacion',
+          component: () => import('../views/conciliacion/ConciliacionBancaria.vue'),
+          meta: { roles: ['TESORERO', 'DIRECTIVA', 'SUPER_ADMIN'] }
+        },
+        {
           path: 'cuotas',
           name: 'Cuotas',
           component: () => import('../views/cuotas/CuotaPanel.vue')
@@ -57,12 +87,19 @@ const router = createRouter({
           name: 'Auditoria',
           component: () => import('../views/AuditLog.vue')
         }
-
-
-
-
-
       ]
+    },
+    {
+      path: '/public',
+      name: 'PanelPublico',
+      component: () => import('../views/public/PanelPublico.vue'),
+      meta: { public: true }
+    },
+    {
+      path: '/comprobantes/:folio',
+      name: 'ComprobanteViewer',
+      component: () => import('../views/comprobantes/ComprobanteViewer.vue'),
+      meta: { public: true }
     }
   ]
 });
