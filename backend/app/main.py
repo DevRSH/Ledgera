@@ -12,8 +12,12 @@ from app.db_init import init_first_user
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Execute on startup
-    await init_first_user()
+    try:
+        await init_first_user()
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar el usuario (posiblemente tablas no creadas): {e}")
     yield
+
     # Execute on shutdown
 
 app = FastAPI(
