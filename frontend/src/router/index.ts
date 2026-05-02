@@ -105,12 +105,36 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, _from, next) => {
-  // Login Bypass: Always allow access
-  if (to.name === 'Login' && !to.query.forced) {
-    next({ name: 'Dashboard' });
-  } else {
+  const authStore = useAuthStore();
+  
+  // Public routes
+  if (to.meta.public) {
     next();
+    return;
   }
+
+  // Authentication check
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next({ name: 'Login' });
+    return;
+  }
+
+  // Role check
+  if (to.meta.roles && Array.isArray(to.meta.roles)) {
+    const userRole = authStore.user?.rol;
+    if (!userRole || !to.meta.roles.includes(userRole)) {
+      next({ name: 'Dashboard' }); // Or a forbidden page
+      return;
+    }
+  }
+
+  // Already logged in
+  if (to.name === 'Login' && authStore.isAuthenticated) {
+    next({ name: 'Dashboard' });
+    return;
+  }
+
+  next();
 });
 
 

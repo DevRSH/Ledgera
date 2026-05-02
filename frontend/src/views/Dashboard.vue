@@ -14,7 +14,7 @@ async function fetchData() {
       api.get('/movimientos/')
     ]);
     saldo.value = saldoRes.data.saldo;
-    movimientos.value = movsRes.data;
+    movimientos.value = movsRes.data.data || [];
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
   } finally {

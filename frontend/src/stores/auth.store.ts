@@ -4,11 +4,11 @@ import api from '../services/api';
 
 
 export const useAuthStore = defineStore('auth', () => {
-  const accessToken = ref<string | null>('dummy-token-bypass');
-  const user = ref<any>({ nombre: 'Admin (Bypass)', rol: 'SUPER_ADMIN' });
+  const accessToken = ref<string | null>(null);
+  const user = ref<any>(null);
   const loading = ref(false);
 
-  const isAuthenticated = computed(() => true);
+  const isAuthenticated = computed(() => !!accessToken.value);
 
 
   async function login(credentials: { email: string; password: any }) {
