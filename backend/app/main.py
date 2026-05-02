@@ -6,10 +6,22 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 
 print("🚀 Iniciando Ledgera Backend...")
+from contextlib import asynccontextmanager
+from app.db_init import init_first_user
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Execute on startup
+    await init_first_user()
+    yield
+    # Execute on shutdown
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json" if hasattr(settings, 'API_V1_STR') else "/api/v1/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if hasattr(settings, 'API_V1_STR') else "/api/v1/openapi.json",
+    lifespan=lifespan
 )
+
 print(f"✅ FastAPI configurado. Entorno: {settings.ENVIRONMENT}")
 print(f"📡 Intentando escuchar en el puerto configurado por Railway...")
 
