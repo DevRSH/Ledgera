@@ -3,10 +3,11 @@ FROM node:20-slim as build
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY frontend/package*.json ./
 RUN npm install --legacy-peer-deps
 
-COPY . .
+COPY frontend/ .
+
 RUN npm run build
 
 # Serve with Nginx
