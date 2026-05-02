@@ -51,7 +51,7 @@ onMounted(fetchData);
         <select v-model="selectedYear" @change="fetchData" class="bg-slate-900 border border-slate-800 text-white rounded-lg px-3 py-1.5 text-sm">
           <option v-for="y in [2024, 2025, 2026]" :key="y" :value="y">{{ y }}</option>
         </select>
-        <button class="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button @click="fetchData" class="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Configurar Montos
         </button>
       </div>

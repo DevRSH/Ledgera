@@ -4,8 +4,8 @@ import api from '../services/api';
 
 
 export const useAuthStore = defineStore('auth', () => {
-  const accessToken = ref<string | null>(null);
-  const user = ref<any>(null);
+  const accessToken = ref<string | null>(localStorage.getItem('token'));
+  const user = ref<any>(JSON.parse(localStorage.getItem('user') || 'null'));
   const loading = ref(false);
 
   const isAuthenticated = computed(() => !!accessToken.value);
@@ -19,8 +19,11 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.data.require_2fa) {
         return { require_2fa: true, sessionToken: response.data.session_token };
       }
-      accessToken.value = response.data.access_token;
-      // In a real app, we'd fetch user info here
+      
+      const token = response.data.access_token;
+      accessToken.value = token;
+      localStorage.setItem('token', token);
+      
       await fetchUser();
       return { success: true };
     } finally {
@@ -33,6 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await api.get('/auth/me');
       user.value = response.data;
+      localStorage.setItem('user', JSON.stringify(response.data));
 
     } catch (error) {
       logout();
@@ -42,6 +46,8 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     accessToken.value = null;
     user.value = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
 
   return {

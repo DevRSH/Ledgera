@@ -5,18 +5,19 @@ from sqlalchemy import select
 from app.core.database import get_db
 from app.models.usuario import Usuario
 from app.models.audit import AuditLog
-from app.core.dependencies import get_current_user
-from pydantic import BaseModel
+from app.core.dependencies import get_current_user, require_role
+from app.schemas.audit import AuditLogResponse
 
 router = APIRouter()
 
-@router.get("/log", response_model=List[Any])
+@router.get("/log", response_model=List[AuditLogResponse])
 async def get_audit_log(
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["AUDITOR", "SUPER_ADMIN", "DIRECTIVA"]))
 ) -> Any:
-    # Security check: Only AUDITOR or higher
-    # For now, let's allow all authenticated users for testing
+    """
+    Retorna los registros de auditoría para el tenant actual.
+    """
     result = await db.execute(
         select(AuditLog)
         .filter(AuditLog.tenant_id == current_user.tenant_id)

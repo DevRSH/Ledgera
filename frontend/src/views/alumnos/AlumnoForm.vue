@@ -5,7 +5,7 @@ import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import * as zod from 'zod';
 import { alumnoService } from '../../services/alumno.service';
-import { validar_rut_chileno } from '../../../../backend/app/core/utils'; // Reusing logic if possible or reimplementing
+// RUT validation should be handled in the frontend or via API call
 
 const props = defineProps<{
   id?: string;

@@ -31,9 +31,9 @@ onMounted(fetchAlumnos);
         <button class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Importar CSV
         </button>
-        <button class="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary-600/20">
+        <router-link to="/alumnos/nuevo" class="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary-600/20">
           Nuevo Alumno
-        </button>
+        </router-link>
       </div>
     </header>
 
@@ -60,8 +60,8 @@ onMounted(fetchAlumnos);
                 </span>
               </td>
               <td class="px-6 py-4 text-sm text-right">
-                <button class="text-primary-500 hover:text-primary-400 font-medium mr-3">Ver</button>
-                <button class="text-slate-500 hover:text-white font-medium">Editar</button>
+                <router-link :to="`/alumnos/${alumno.id}`" class="text-primary-500 hover:text-primary-400 font-medium mr-3">Ver</router-link>
+                <router-link :to="`/alumnos/${alumno.id}/editar`" class="text-slate-500 hover:text-white font-medium">Editar</router-link>
               </td>
             </tr>
             <tr v-if="alumnos.length === 0" class="text-center">

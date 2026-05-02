@@ -43,6 +43,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+print(f"DEBUG: Allowed CORS Origins: {[o.strip() for o in settings.FRONTEND_URL.split(',')]} (from {settings.FRONTEND_URL})")
+
 from app.api.v1.router import api_router
 app.include_router(api_router, prefix="/v1")
 

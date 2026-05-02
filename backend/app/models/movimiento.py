@@ -46,7 +46,7 @@ class Movimiento(Base):
 
 
     # Relationships
-    categoria: Mapped[Optional["CategoriaMovimiento"]] = relationship()
+    categoria: Mapped[Optional["CategoriaMovimiento"]] = relationship(lazy="selectin")
     registrador: Mapped["Usuario"] = relationship(foreign_keys=[registrado_por])
     anulador: Mapped[Optional["Usuario"]] = relationship(foreign_keys=[anulado_por])
     documentos: Mapped[List["Documento"]] = relationship(

@@ -2,7 +2,8 @@ import uuid
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
@@ -32,16 +33,16 @@ async def list_movimientos(
     page: int = 1,
     size: int = 50
 ) -> Any:
-    stmt = select(Movimiento).filter(Movimiento.tenant_id == current_user.tenant_id).order_by(Movimiento.fecha.desc())
+    stmt = select(Movimiento).filter(
+        Movimiento.tenant_id == current_user.tenant_id
+    ).options(joinedload(Movimiento.categoria)).order_by(Movimiento.fecha.desc()).offset((page - 1) * size).limit(size)
     
-    # Pagination
-    from sqlalchemy import func
     total_stmt = select(func.count(Movimiento.id)).filter(Movimiento.tenant_id == current_user.tenant_id)
     total_res = await db.execute(total_stmt)
     total = total_res.scalar() or 0
     
-    result = await db.execute(stmt.offset((page - 1) * size).limit(size))
-    movimientos = result.scalars().all()
+    result = await db.execute(stmt)
+    movimientos = result.unique().scalars().all()
     
     return {
         "data": movimientos,
@@ -56,9 +57,6 @@ async def create_movimiento(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(require_role(["TESORERO", "SUPER_ADMIN"]))
 ) -> Any:
-    """
-    Crea un movimiento usando el movimiento_service.
-    """
     mov = await movimiento_service.crear_movimiento(
         db, 
         tenant_id=current_user.tenant_id,
@@ -66,7 +64,12 @@ async def create_movimiento(
         data=mov_in.model_dump()
     )
     await db.commit()
-    return mov
+    
+    # Reload with relationships
+    result = await db.execute(
+        select(Movimiento).filter(Movimiento.id == mov.id).options(joinedload(Movimiento.categoria))
+    )
+    return result.unique().scalars().first()
 
 @router.post("/{id}/anular", response_model=MovimientoResponse)
 async def anular_movimiento(
@@ -75,9 +78,6 @@ async def anular_movimiento(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(require_role(["DIRECTIVA", "SUPER_ADMIN"]))
 ) -> Any:
-    """
-    Anula un movimiento (solo Directiva).
-    """
     mov = await movimiento_service.anular_movimiento(
         db,
         tenant_id=current_user.tenant_id,
@@ -86,16 +86,17 @@ async def anular_movimiento(
         motivo=body.motivo
     )
     await db.commit()
-    return mov
+    
+    result = await db.execute(
+        select(Movimiento).filter(Movimiento.id == id).options(joinedload(Movimiento.categoria))
+    )
+    return result.unique().scalars().first()
 
 @router.get("/saldo")
 async def get_saldo(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(require_role(["AUDITOR", "TESORERO", "DIRECTIVA", "SUPER_ADMIN"]))
 ) -> Any:
-    """
-    Calcula el saldo actual usando el motor de movimiento_service.
-    """
     saldo = await movimiento_service.calcular_saldo_actual(db, current_user.tenant_id)
     return {"saldo": saldo}
 

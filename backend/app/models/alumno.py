@@ -20,9 +20,11 @@ class Alumno(Base):
 
     @property
     def apoderado_titular(self) -> Optional["Apoderado"]:
-        for ap in self.apoderados:
-            if ap.tipo == 'titular':
-                return ap
+        # Only return if already loaded to avoid MissingGreenlet
+        if "apoderados" in self.__dict__:
+            for ap in self.apoderados:
+                if ap.tipo == 'titular':
+                    return ap
         return None
 
     @property
@@ -32,7 +34,11 @@ class Alumno(Base):
         return None
 
     # Relationships
-    apoderados: Mapped[List["Apoderado"]] = relationship(back_populates="alumno", cascade="all, delete-orphan")
+    apoderados: Mapped[List["Apoderado"]] = relationship(
+        back_populates="alumno", 
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
     pagos: Mapped[List["PagoCuota"]] = relationship(back_populates="alumno")
 
     __table_args__ = (

@@ -4,7 +4,8 @@ import uuid
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
@@ -23,18 +24,20 @@ async def list_alumnos(
     page: int = 1,
     size: int = 50
 ) -> Any:
-    """
-    Lista todos los alumnos del tenant actual.
-    """
-    stmt = select(Alumno).filter(Alumno.tenant_id == current_user.tenant_id, Alumno.activo == True)
+    stmt = select(Alumno).filter(
+        Alumno.tenant_id == current_user.tenant_id, 
+        Alumno.activo == True
+    ).options(joinedload(Alumno.apoderados)).offset((page - 1) * size).limit(size)
     
-    # Simple pagination placeholder
-    result = await db.execute(stmt.offset((page - 1) * size).limit(size))
-    alumnos = result.scalars().all()
+    result = await db.execute(stmt)
+    alumnos = result.unique().scalars().all()
     
-    # Count total for response
-    from sqlalchemy import func
-    total_result = await db.execute(select(func.count(Alumno.id)).filter(Alumno.tenant_id == current_user.tenant_id, Alumno.activo == True))
+    total_result = await db.execute(
+        select(func.count(Alumno.id)).filter(
+            Alumno.tenant_id == current_user.tenant_id, 
+            Alumno.activo == True
+        )
+    )
     total = total_result.scalar() or 0
     
     return {
@@ -50,10 +53,6 @@ async def create_alumno(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(require_role(["TESORERO", "SUPER_ADMIN"]))
 ) -> Any:
-    """
-    Crea un nuevo alumno. La validación del RUT se hace en el schema.
-    """
-    # Verificar si el RUT ya existe
     result = await db.execute(
         select(Alumno).filter(Alumno.tenant_id == current_user.tenant_id, Alumno.rut == alumno_in.rut)
     )
@@ -72,7 +71,6 @@ async def create_alumno(
     db.add(new_alumno)
     await db.flush()
     
-    # Auditoría
     await audit_service.registrar_evento(
         db, tenant_id=current_user.tenant_id, actor_id=current_user.id,
         actor_email=current_user.email, accion=audit_service.CREATE_ALUMNO,
@@ -81,7 +79,11 @@ async def create_alumno(
     )
     
     await db.commit()
-    return new_alumno
+    # Reload with relationships
+    result = await db.execute(
+        select(Alumno).filter(Alumno.id == new_alumno.id).options(joinedload(Alumno.apoderados))
+    )
+    return result.unique().scalars().first()
 
 @router.get("/{id}", response_model=AlumnoResponse)
 async def get_alumno(
@@ -89,7 +91,10 @@ async def get_alumno(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(require_role(["AUDITOR", "TESORERO", "DIRECTIVA", "SUPER_ADMIN"]))
 ) -> Any:
-    alumno = await db.get(Alumno, id)
+    result = await db.execute(
+        select(Alumno).filter(Alumno.id == id).options(joinedload(Alumno.apoderados))
+    )
+    alumno = result.unique().scalars().first()
     if not alumno or alumno.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=404, detail="Alumno no encontrado")
     return alumno
@@ -101,15 +106,14 @@ async def update_alumno(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(require_role(["TESORERO", "SUPER_ADMIN"]))
 ) -> Any:
-    alumno = await db.get(Alumno, id)
+    result = await db.execute(
+        select(Alumno).filter(Alumno.id == id).options(joinedload(Alumno.apoderados))
+    )
+    alumno = result.unique().scalars().first()
     if not alumno or alumno.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=404, detail="Alumno no encontrado")
     
-    payload_antes = {
-        "nombre": alumno.nombre,
-        "activo": alumno.activo
-    }
-    
+    payload_antes = {"nombre": alumno.nombre, "activo": alumno.activo}
     update_data = alumno_in.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(alumno, key, value)
@@ -118,12 +122,15 @@ async def update_alumno(
         db, tenant_id=current_user.tenant_id, actor_id=current_user.id,
         actor_email=current_user.email, accion=audit_service.UPDATE_ALUMNO,
         entidad="Alumno", entidad_id=str(id),
-        payload_antes=payload_antes,
-        payload_despues=update_data
+        payload_antes=payload_antes, payload_despues=update_data
     )
     
     await db.commit()
-    return alumno
+    # Refresh to ensure relationships are loaded correctly
+    result = await db.execute(
+        select(Alumno).filter(Alumno.id == id).options(joinedload(Alumno.apoderados))
+    )
+    return result.unique().scalars().first()
 
 @router.post("/importar-csv")
 async def importar_alumnos(
