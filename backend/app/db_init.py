@@ -1,7 +1,8 @@
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.core.database import SessionLocal
+from app.core.database import AsyncSessionLocal as SessionLocal
+
 from app.models.tenant import Tenant
 from app.models.usuario import Usuario
 from app.core import security

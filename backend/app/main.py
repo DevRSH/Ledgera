@@ -7,7 +7,7 @@ from app.core.config import settings
 
 print("🚀 Iniciando Ledgera Backend...")
 from contextlib import asynccontextmanager
-from app.db_init import init_first_user
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

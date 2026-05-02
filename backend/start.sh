@@ -9,7 +9,9 @@ alembic upgrade head || echo "⚠️ Las migraciones fallaron o ya estaban aplic
 
 # 2. Inicializar usuario
 echo "👤 Verificando usuario admin..."
-python app/db_init.py || echo "⚠️ No se pudo inicializar el usuario (posiblemente la tabla no existe aún)."
+export PYTHONPATH=$PYTHONPATH:.
+python app/db_init.py || echo "⚠️ No se pudo inicializar el usuario."
+
 
 # 3. Servidor
 echo "🚀 Lanzando servidor..."
