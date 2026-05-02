@@ -1,13 +1,14 @@
+import uuid
 from typing import Any, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+
 from app.core.database import get_db
 from app.models.movimiento import Movimiento
 from app.models.comprobante import ComprobantePago
-
-from app.models.tenant import Tenant
-import uuid
+from app.schemas.comprobante import VerificacionPublicaResponse
+from app.services import movimiento_service
 
 router = APIRouter()
 
@@ -17,18 +18,10 @@ async def get_public_saldo(
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     """
-    Get public balance for a course.
+    Obtiene el saldo público de un curso (sin PII).
     """
-    ingresos = await db.scalar(
-        select(func.sum(Movimiento.monto))
-        .filter(Movimiento.tenant_id == tenant_id, Movimiento.tipo == 'ingreso', Movimiento.anulado == False)
-    ) or 0
-    egresos = await db.scalar(
-        select(func.sum(Movimiento.monto))
-        .filter(Movimiento.tenant_id == tenant_id, Movimiento.tipo == 'egreso', Movimiento.anulado == False)
-    ) or 0
-    
-    return {"saldo": ingresos - egresos, "actualizado_at": func.now()}
+    saldo = await movimiento_service.calcular_saldo_actual(db, tenant_id)
+    return {"saldo": saldo}
 
 @router.get("/{tenant_id}/movimientos")
 async def get_public_movimientos(
@@ -36,54 +29,56 @@ async def get_public_movimientos(
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     """
-    Get recent movements without PII.
+    Lista movimientos recientes para transparencia pública, ocultando datos sensibles.
     """
     result = await db.execute(
         select(Movimiento)
-        .filter(Movimiento.tenant_id == tenant_id)
+        .filter(Movimiento.tenant_id == tenant_id, Movimiento.anulado == False)
         .order_by(Movimiento.fecha.desc())
         .limit(20)
     )
     movs = result.scalars().all()
     
-    # Sanitize: remove any personal data if it existed in descripcion (basic approach)
-    # The requirement says no RUT, email, etc. Most of these are in Alumno/Apoderado tables.
-    # In Movimiento table, we only have descripcion.
+    # Sanitización explícita: Solo devolvemos campos no sensibles
     return [
         {
             "fecha": m.fecha,
             "tipo": m.tipo,
             "monto": m.monto,
-            "descripcion": m.descripcion,
+            "descripcion": m.descripcion, # La descripción debe ser general (ej: "Pago mensual")
             "categoria_id": m.categoria_id
         } for m in movs
     ]
 
-@router.get("/verify/{folio}")
+@router.get("/verify/{folio}", response_model=VerificacionPublicaResponse)
 async def verificar_comprobante(
     folio: str, 
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     """
-    Endpoint called from the QR on the printed receipt.
+    Endpoint para verificación vía QR. NUNCA devuelve PII (nombres, RUTs).
     """
     result = await db.execute(
         select(ComprobantePago).filter(
-            ComprobantePago.folio == folio,
-            ComprobantePago.anulado == False
+            ComprobantePago.folio == folio
         )
     )
-    comp = result.scalar_one_or_none()
+    comp = result.scalars().first()
     
     if not comp:
-        return {"valido": False, "motivo": "Comprobante no encontrado o anulado"}
+        return {"valido": False, "motivo": "Comprobante no encontrado"}
+    
+    if comp.anulado:
+        return {
+            "valido": False, 
+            "folio": comp.folio,
+            "motivo": f"Este comprobante fue ANULADO el {comp.anulado_at.strftime('%d/%m/%Y')}"
+        }
     
     return {
         "valido": True,
         "folio": comp.folio,
-        "concepto": f"Cuota {comp.mes}/{comp.año}",
+        "concepto": f"Pago de Cuota {comp.mes}/{comp.año}",
         "monto": comp.monto,
-        "fecha_pago": comp.fecha_pago.isoformat(),
-        "emitido_en": comp.created_at.isoformat(),
+        "fecha_pago": comp.fecha_pago
     }
-

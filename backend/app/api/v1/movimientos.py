@@ -1,97 +1,109 @@
+import uuid
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select
+
 from app.core.database import get_db
+from app.core.dependencies import get_current_user, require_role
 from app.models.usuario import Usuario
 from app.models.movimiento import Movimiento, CategoriaMovimiento
-from app.core.dependencies import get_current_user
-from pydantic import BaseModel
-from datetime import date
+from app.schemas.movimiento import (
+    MovimientoCreate, MovimientoResponse, MovimientoListResponse,
+    AnularMovimientoRequest, MovimientoUpdate
+)
+from app.services import movimiento_service, audit_service
 
 router = APIRouter()
 
-# Schemas
-class CategoriaResponse(BaseModel):
-    id: Any
-    nombre: str
-    tipo: str
-    color: Optional[str]
-
-class MovimientoCreate(BaseModel):
-    tipo: str # 'ingreso', 'egreso'
-    monto: int
-    fecha: date
-    descripcion: str
-    categoria_id: Optional[Any] = None
-    forma_pago: Optional[str] = "transferencia"
-
-class MovimientoResponse(BaseModel):
-    id: Any
-    tipo: str
-    monto: int
-    fecha: date
-    descripcion: str
-    anulado: bool
-
-@router.get("/categorias", response_model=List[CategoriaResponse])
+@router.get("/categorias", response_model=List[Any])
 async def list_categorias(
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["TESORERO", "DIRECTIVA", "AUDITOR", "SUPER_ADMIN"]))
 ) -> Any:
-    result = await db.execute(
-        select(CategoriaMovimiento).filter(CategoriaMovimiento.tenant_id == current_user.tenant_id)
-    )
+    stmt = select(CategoriaMovimiento).filter(CategoriaMovimiento.tenant_id == current_user.tenant_id)
+    result = await db.execute(stmt)
     return result.scalars().all()
 
-@router.get("/", response_model=List[MovimientoResponse])
+@router.get("/", response_model=MovimientoListResponse)
 async def list_movimientos(
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["AUDITOR", "TESORERO", "DIRECTIVA", "SUPER_ADMIN"])),
+    page: int = 1,
+    size: int = 50
 ) -> Any:
-    result = await db.execute(
-        select(Movimiento)
-        .filter(Movimiento.tenant_id == current_user.tenant_id)
-        .order_by(Movimiento.fecha.desc())
-    )
-    return result.scalars().all()
+    stmt = select(Movimiento).filter(Movimiento.tenant_id == current_user.tenant_id).order_by(Movimiento.fecha.desc())
+    
+    # Pagination
+    from sqlalchemy import func
+    total_stmt = select(func.count(Movimiento.id)).filter(Movimiento.tenant_id == current_user.tenant_id)
+    total_res = await db.execute(total_stmt)
+    total = total_res.scalar() or 0
+    
+    result = await db.execute(stmt.offset((page - 1) * size).limit(size))
+    movimientos = result.scalars().all()
+    
+    return {
+        "data": movimientos,
+        "total": total,
+        "page": page,
+        "size": size
+    }
 
-@router.post("/", response_model=MovimientoResponse)
+@router.post("/", response_model=MovimientoResponse, status_code=status.HTTP_201_CREATED)
 async def create_movimiento(
     mov_in: MovimientoCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["TESORERO", "SUPER_ADMIN"]))
 ) -> Any:
-    new_mov = Movimiento(
+    """
+    Crea un movimiento usando el movimiento_service.
+    """
+    mov = await movimiento_service.crear_movimiento(
+        db, 
         tenant_id=current_user.tenant_id,
-        registrado_por=current_user.id,
-        **mov_in.model_dump()
+        actor=current_user,
+        data=mov_in.model_dump()
     )
-    db.add(new_mov)
     await db.commit()
-    await db.refresh(new_mov)
-    return new_mov
+    return mov
+
+@router.post("/{id}/anular", response_model=MovimientoResponse)
+async def anular_movimiento(
+    id: uuid.UUID,
+    body: AnularMovimientoRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["DIRECTIVA", "SUPER_ADMIN"]))
+) -> Any:
+    """
+    Anula un movimiento (solo Directiva).
+    """
+    mov = await movimiento_service.anular_movimiento(
+        db,
+        tenant_id=current_user.tenant_id,
+        actor=current_user,
+        movimiento_id=id,
+        motivo=body.motivo
+    )
+    await db.commit()
+    return mov
 
 @router.get("/saldo")
 async def get_saldo(
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["AUDITOR", "TESORERO", "DIRECTIVA", "SUPER_ADMIN"]))
 ) -> Any:
     """
-    Calculate current balance for the tenant.
+    Calcula el saldo actual usando el motor de movimiento_service.
     """
-    # Sum ingresos
-    ingresos_result = await db.execute(
-        select(func.sum(Movimiento.monto))
-        .filter(Movimiento.tenant_id == current_user.tenant_id, Movimiento.tipo == 'ingreso', Movimiento.anulado == False)
-    )
-    ingresos = ingresos_result.scalar() or 0
-    
-    # Sum egresos
-    egresos_result = await db.execute(
-        select(func.sum(Movimiento.monto))
-        .filter(Movimiento.tenant_id == current_user.tenant_id, Movimiento.tipo == 'egreso', Movimiento.anulado == False)
-    )
-    egresos = egresos_result.scalar() or 0
-    
-    return {"saldo": ingresos - egresos}
+    saldo = await movimiento_service.calcular_saldo_actual(db, current_user.tenant_id)
+    return {"saldo": saldo}
+
+@router.get("/resumen-anual")
+async def get_resumen_anual(
+    año: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["AUDITOR", "TESORERO", "DIRECTIVA", "SUPER_ADMIN"]))
+) -> Any:
+    resumen = await movimiento_service.obtener_resumen_mensual(db, current_user.tenant_id, año)
+    return resumen

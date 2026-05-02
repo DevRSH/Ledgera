@@ -1,136 +1,163 @@
 import csv
 import io
+import uuid
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update
+
 from app.core.database import get_db
+from app.core.dependencies import get_current_user, require_role
 from app.models.usuario import Usuario
 from app.models.alumno import Alumno, Apoderado
-from app.core.dependencies import get_current_user
-from app.core.utils import validate_rut, format_rut
-from pydantic import BaseModel, EmailStr
+from app.core.utils import validar_rut_chileno
+from app.schemas.alumno import AlumnoCreate, AlumnoUpdate, AlumnoResponse, AlumnoListResponse
+from app.services import audit_service
 
 router = APIRouter()
 
-# Schemas
-class ApoderadoBase(BaseModel):
-    tipo: str
-    rut: Optional[str] = None
-    nombre: str
-    apellido_paterno: str
-    apellido_materno: Optional[str] = None
-    email: Optional[EmailStr] = None
-    telefono: Optional[str] = None
-    direccion: Optional[str] = None
-
-class AlumnoCreate(BaseModel):
-    rut: str
-    nombre: str
-    apellido_paterno: str
-    apellido_materno: Optional[str] = None
-    fecha_nacimiento: Optional[str] = None # date in ISO format
-    observaciones: Optional[str] = None
-    apoderados: List[ApoderadoBase] = []
-
-class AlumnoResponse(BaseModel):
-    id: Any
-    rut: str
-    nombre: str
-    apellido_paterno: str
-    apellido_materno: Optional[str] = None
-    activo: bool
-
-@router.get("/", response_model=List[AlumnoResponse])
+@router.get("/", response_model=AlumnoListResponse)
 async def list_alumnos(
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["AUDITOR", "TESORERO", "DIRECTIVA", "SUPER_ADMIN"])),
+    page: int = 1,
+    size: int = 50
 ) -> Any:
     """
-    List all students for the current tenant.
+    Lista todos los alumnos del tenant actual.
     """
-    result = await db.execute(
-        select(Alumno)
-        .filter(Alumno.tenant_id == current_user.tenant_id)
-        .filter(Alumno.deleted_at == None)
-    )
-    return result.scalars().all()
+    stmt = select(Alumno).filter(Alumno.tenant_id == current_user.tenant_id, Alumno.activo == True)
+    
+    # Simple pagination placeholder
+    result = await db.execute(stmt.offset((page - 1) * size).limit(size))
+    alumnos = result.scalars().all()
+    
+    # Count total for response
+    from sqlalchemy import func
+    total_result = await db.execute(select(func.count(Alumno.id)).filter(Alumno.tenant_id == current_user.tenant_id, Alumno.activo == True))
+    total = total_result.scalar() or 0
+    
+    return {
+        "data": alumnos,
+        "total": total,
+        "page": page,
+        "size": size
+    }
 
-@router.post("/", response_model=AlumnoResponse)
+@router.post("/", response_model=AlumnoResponse, status_code=status.HTTP_201_CREATED)
 async def create_alumno(
     alumno_in: AlumnoCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["TESORERO", "SUPER_ADMIN"]))
 ) -> Any:
     """
-    Create a new student with optional apoderados.
+    Crea un nuevo alumno. La validación del RUT se hace en el schema.
     """
-    if not validate_rut(alumno_in.rut):
-        raise HTTPException(status_code=400, detail="RUT inválido")
-    
-    # Check if RUT already exists for this tenant
+    # Verificar si el RUT ya existe
     result = await db.execute(
         select(Alumno).filter(Alumno.tenant_id == current_user.tenant_id, Alumno.rut == alumno_in.rut)
     )
     if result.scalars().first():
-        raise HTTPException(status_code=400, detail="El RUT ya existe en este curso")
+        raise HTTPException(status_code=400, detail="El RUT ya existe en el sistema")
     
     new_alumno = Alumno(
         tenant_id=current_user.tenant_id,
-        rut=format_rut(alumno_in.rut),
+        rut=alumno_in.rut,
         nombre=alumno_in.nombre,
         apellido_paterno=alumno_in.apellido_paterno,
         apellido_materno=alumno_in.apellido_materno,
+        fecha_nacimiento=alumno_in.fecha_nacimiento,
         observaciones=alumno_in.observaciones
     )
     db.add(new_alumno)
-    await db.flush() # Get ID
+    await db.flush()
     
-    for apo_in in alumno_in.apoderados:
-        new_apo = Apoderado(
-            alumno_id=new_alumno.id,
-            **apo_in.model_dump()
-        )
-        db.add(new_apo)
-        
+    # Auditoría
+    await audit_service.registrar_evento(
+        db, tenant_id=current_user.tenant_id, actor_id=current_user.id,
+        actor_email=current_user.email, accion=audit_service.CREATE_ALUMNO,
+        entidad="Alumno", entidad_id=str(new_alumno.id),
+        payload_despues=alumno_in.model_dump(mode='json')
+    )
+    
     await db.commit()
-    await db.refresh(new_alumno)
     return new_alumno
+
+@router.get("/{id}", response_model=AlumnoResponse)
+async def get_alumno(
+    id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["AUDITOR", "TESORERO", "DIRECTIVA", "SUPER_ADMIN"]))
+) -> Any:
+    alumno = await db.get(Alumno, id)
+    if not alumno or alumno.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="Alumno no encontrado")
+    return alumno
+
+@router.patch("/{id}", response_model=AlumnoResponse)
+async def update_alumno(
+    id: uuid.UUID,
+    alumno_in: AlumnoUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["TESORERO", "SUPER_ADMIN"]))
+) -> Any:
+    alumno = await db.get(Alumno, id)
+    if not alumno or alumno.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=404, detail="Alumno no encontrado")
+    
+    payload_antes = {
+        "nombre": alumno.nombre,
+        "activo": alumno.activo
+    }
+    
+    update_data = alumno_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(alumno, key, value)
+    
+    await audit_service.registrar_evento(
+        db, tenant_id=current_user.tenant_id, actor_id=current_user.id,
+        actor_email=current_user.email, accion=audit_service.UPDATE_ALUMNO,
+        entidad="Alumno", entidad_id=str(id),
+        payload_antes=payload_antes,
+        payload_despues=update_data
+    )
+    
+    await db.commit()
+    return alumno
 
 @router.post("/importar-csv")
 async def importar_alumnos(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(require_role(["TESORERO", "SUPER_ADMIN"]))
 ) -> Any:
-    """
-    Mass import students from CSV.
-    """
     content = await file.read()
     decoded = content.decode('utf-8')
     reader = csv.DictReader(io.StringIO(decoded))
     
-    results = {"creados": 0, "errores": []}
+    importados = 0
+    errores = []
     
-    for row in reader:
+    for i, row in enumerate(reader, start=1):
         try:
-            # Basic mapping (simplified for this turn)
-            rut = row.get("rut")
-            if not rut or not validate_rut(rut):
-                results["errores"].append({"fila": row, "motivo": "RUT inválido"})
-                continue
-                
+            rut = validar_rut_chileno(row.get("rut", ""))
             new_alumno = Alumno(
                 tenant_id=current_user.tenant_id,
-                rut=format_rut(rut),
+                rut=rut,
                 nombre=row.get("nombre", ""),
                 apellido_paterno=row.get("apellido_paterno", ""),
                 apellido_materno=row.get("apellido_materno")
             )
             db.add(new_alumno)
-            results["creados"] += 1
+            importados += 1
         except Exception as e:
-            results["errores"].append({"fila": row, "motivo": str(e)})
+            errores.append({"fila": i, "motivo": str(e)})
             
+    await audit_service.registrar_evento(
+        db, tenant_id=current_user.tenant_id, actor_id=current_user.id,
+        actor_email=current_user.email, accion="IMPORT_ALUMNOS",
+        payload_despues={"importados": importados, "errores": len(errores)}
+    )
+    
     await db.commit()
-    return results
+    return {"importados": importados, "errores": errores}

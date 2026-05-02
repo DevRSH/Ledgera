@@ -30,3 +30,16 @@ async def get_current_user(
         
     return user
 
+def require_role(allowed_roles: list[str]):
+    """
+    Dependencia para validar que el usuario actual tenga uno de los roles permitidos.
+    """
+    async def role_checker(current_user: Usuario = Depends(get_current_user)):
+        if current_user.rol not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"El rol {current_user.rol} no tiene permisos para esta acción. Requerido: {allowed_roles}"
+            )
+        return current_user
+    return role_checker
+
