@@ -3,15 +3,16 @@ builder = "dockerfile"
 dockerfilePath = "frontend/Dockerfile"
 
 [deploy]
-healthcheckPath = "/"
-healthcheckTimeout = 60
+healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
-
 
 [[services]]
 name = "api"
 source = "backend"
+healthcheckPath = "/health"
 
 [[services]]
 name = "frontend"
 source = "frontend"
+healthcheckPath = "/"
+
