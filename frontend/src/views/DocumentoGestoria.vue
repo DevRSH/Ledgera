@@ -8,7 +8,7 @@ const loading = ref(true);
 async function fetchDocumentos() {
   loading.value = true;
   try {
-    const response = await api.get('/v1/documentos/');
+    const response = await api.get('/documentos/');
     documentos.value = response.data;
   } catch (error) {
     console.error('Error fetching documentos:', error);

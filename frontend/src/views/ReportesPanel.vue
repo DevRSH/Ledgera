@@ -7,7 +7,7 @@ const loading = ref(false);
 async function downloadDeudores() {
   loading.value = true;
   try {
-    const response = await api.post('/v1/reportes/nomina-deudores/export', {}, {
+    const response = await api.post('/reportes/nomina-deudores/export', {}, {
       responseType: 'blob'
     });
     

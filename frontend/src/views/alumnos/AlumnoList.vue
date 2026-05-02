@@ -8,7 +8,7 @@ const loading = ref(true);
 async function fetchAlumnos() {
   loading.value = true;
   try {
-    const response = await api.get('/v1/alumnos/');
+    const response = await api.get('/alumnos/');
     alumnos.value = response.data;
   } catch (error) {
     console.error('Error fetching alumnos:', error);

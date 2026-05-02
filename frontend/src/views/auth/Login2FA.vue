@@ -18,7 +18,7 @@ async function handleVerify() {
   error.value = '';
   loading.value = true;
   try {
-    const response = await api.post('/v1/auth/login/2fa', {
+    const response = await api.post('/auth/login/2fa', {
 
       session_token: sessionToken,
       totp_code: code.value

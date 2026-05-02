@@ -8,7 +8,7 @@ const loading = ref(true);
 async function fetchHistorial() {
   loading.value = true;
   try {
-    const response = await api.get('/v1/comunicaciones/historial');
+    const response = await api.get('/comunicaciones/historial');
     historial.value = response.data;
   } catch (error) {
     console.error('Error fetching communication history:', error);

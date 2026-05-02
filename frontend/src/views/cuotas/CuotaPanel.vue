@@ -11,8 +11,8 @@ async function fetchData() {
   loading.value = true;
   try {
     const [alRes, confRes] = await Promise.all([
-      api.get('/v1/alumnos/'),
-      api.get(`/v1/cuotas/config?año=${selectedYear.value}`)
+      api.get('/alumnos/'),
+      api.get(`/cuotas/config?año=${selectedYear.value}`)
     ]);
     
     alumnos.value = alRes.data;
@@ -21,7 +21,7 @@ async function fetchData() {
     // For each alumno, fetch their debt status
     // Note: In production, this should be a bulk endpoint
     for (const al of alumnos.value) {
-      const statusRes = await api.get(`/v1/cuotas/estado/${al.id}?año=${selectedYear.value}`);
+      const statusRes = await api.get(`/cuotas/estado/${al.id}?año=${selectedYear.value}`);
       al.status = statusRes.data;
     }
   } catch (error) {

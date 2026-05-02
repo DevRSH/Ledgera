@@ -10,8 +10,8 @@ async function fetchData() {
   loading.value = true;
   try {
     const [saldoRes, movsRes] = await Promise.all([
-      api.get('/v1/movimientos/saldo'),
-      api.get('/v1/movimientos/')
+      api.get('/movimientos/saldo'),
+      api.get('/movimientos/')
     ]);
     saldo.value = saldoRes.data.saldo;
     movimientos.value = movsRes.data;

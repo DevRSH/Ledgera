@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(credentials: { email: string; password: any }) {
     loading.value = true;
     try {
-      const response = await api.post('/v1/auth/login', credentials);
+      const response = await api.post('/auth/login', credentials);
 
       if (response.data.require_2fa) {
         return { require_2fa: true, sessionToken: response.data.session_token };
@@ -30,7 +30,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUser() {
     if (!accessToken.value) return;
     try {
-      const response = await api.get('/v1/auth/me');
+      const response = await api.get('/auth/me');
       user.value = response.data;
 
     } catch (error) {
