@@ -18,11 +18,15 @@ services:
       - "6379:6379"
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:password@db:5432/ledgera
-      REDIS_URL: redis://redis:6379
-      SECRET_KEY: dev-secret-key-change-in-prod
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/ledgera
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev-secret-key-123
+      - REFRESH_SECRET_KEY=dev-refresh-key-456
+      - ENVIRONMENT=development
     ports:
       - "8000:8000"
     depends_on:
@@ -30,7 +34,9 @@ services:
       - redis
 
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     ports:
       - "5173:5173"
     environment:
