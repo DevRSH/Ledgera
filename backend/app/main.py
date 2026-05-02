@@ -31,13 +31,16 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS configuration
+origins = [settings.FRONTEND_URL] if hasattr(settings, "FRONTEND_URL") and settings.FRONTEND_URL != "*" else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["*"],
 )
+
 
 @app.get("/health")
 async def health_check():
