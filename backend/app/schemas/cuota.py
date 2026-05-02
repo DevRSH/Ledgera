@@ -48,3 +48,6 @@ class ConfigCuotaListResponse(BaseModel):
     total: int
     page: int
     size: int
+
+# Alias para compatibilidad con los services
+EstadoDeuda = EstadoDeudaResponse

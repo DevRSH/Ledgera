@@ -8,16 +8,13 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # The start.sh script handles migrations and initial seeding
     yield
 
-# Initialize limiter
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    # Security: Disable Swagger/OpenAPI in production
-    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.ENVIRONMENT != "production" else None,
+    openapi_url="/v1/openapi.json" if settings.ENVIRONMENT != "production" else None,
     docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
     lifespan=lifespan
@@ -26,7 +23,6 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Security Middleware: Security Headers
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response: Response = await call_next(request)
@@ -37,7 +33,6 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
     return response
 
-# CORS configuration - Restricted to frontend URL
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.FRONTEND_URL],
@@ -46,7 +41,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Router inclusion
 from app.api.v1.router import api_router
 app.include_router(api_router, prefix="/v1")
 
@@ -54,6 +48,5 @@ app.include_router(api_router, prefix="/v1")
 async def health_check():
     return {
         "status": "ok",
-        "database": "connected",
         "environment": settings.ENVIRONMENT
     }
