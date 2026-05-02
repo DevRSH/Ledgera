@@ -40,10 +40,11 @@ async function handleVerify() {
     <div class="w-full max-w-md">
       <div class="text-center mb-8">
         <h1 class="text-4xl font-bold text-white tracking-tight">
-          Seguridad<span class="text-primary-500">2FA</span>
+          Ledgera <span class="text-primary-500">2FA</span>
         </h1>
         <p class="text-slate-400 mt-2">Introduce el código de tu aplicación de autenticación</p>
       </div>
+
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
         <div class="p-8">

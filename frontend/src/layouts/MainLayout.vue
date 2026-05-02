@@ -17,9 +17,10 @@ function handleLogout() {
     <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
       <div class="p-6 border-b border-slate-800">
         <h1 class="text-xl font-bold text-white tracking-tight">
-          Teso<span class="text-primary-500">App</span>
+          Ledgera
         </h1>
       </div>
+
       
       <nav class="flex-1 p-4 space-y-2">
         <router-link 
@@ -61,6 +62,15 @@ function handleLogout() {
         >
           <span class="mr-3">📂</span> Documentos
         </router-link>
+
+        <router-link 
+          to="/comunicaciones" 
+          class="flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-all"
+          :class="$route.path.startsWith('/comunicaciones') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+        >
+          <span class="mr-3">📧</span> Comunicaciones
+        </router-link>
+
 
       </nav>
       

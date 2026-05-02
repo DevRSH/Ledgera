@@ -18,6 +18,8 @@ from app.models.cuota import ConfiguracionCuota, PagoCuota, Condonacion
 from app.models.documento import Documento
 from app.models.vale import Vale
 from app.models.comprobante import ComprobantePago
+from app.models.comunicacion import PlantillaEmail, EmailEnviado
+
 
 
 

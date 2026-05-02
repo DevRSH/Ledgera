@@ -41,7 +41,13 @@ const router = createRouter({
           path: 'documentos',
           name: 'Documentos',
           component: () => import('../views/DocumentoGestoria.vue')
+        },
+        {
+          path: 'comunicaciones',
+          name: 'Comunicaciones',
+          component: () => import('../views/HistorialComunicaciones.vue')
         }
+
 
 
       ]

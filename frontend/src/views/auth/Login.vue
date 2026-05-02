@@ -35,10 +35,11 @@ async function handleLogin() {
       <!-- Logo/Branding -->
       <div class="text-center mb-8">
         <h1 class="text-4xl font-bold text-white tracking-tight">
-          Teso<span class="text-primary-500">App</span>
+          Ledgera
         </h1>
-        <p class="text-slate-400 mt-2">Gestión transparente para tu curso</p>
+        <p class="text-slate-400 mt-2">Todo claro. Todo bajo control.</p>
       </div>
+
 
       <!-- Login Card -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
