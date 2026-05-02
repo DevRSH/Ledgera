@@ -68,15 +68,13 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, _from, next) => {
-  const authStore = useAuthStore();
-  
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next({ name: 'Login' });
-  } else if (to.name === 'Login' && authStore.isAuthenticated) {
+  // Login Bypass: Always allow access
+  if (to.name === 'Login' && !to.query.forced) {
     next({ name: 'Dashboard' });
   } else {
     next();
   }
 });
+
 
 export default router;

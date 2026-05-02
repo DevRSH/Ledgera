@@ -1,18 +1,20 @@
+# Railway Configuration - Service Specific
 [build]
 builder = "dockerfile"
-dockerfilePath = "frontend/Dockerfile"
-
-[deploy]
-healthcheckTimeout = 120
-restartPolicyType = "ON_FAILURE"
 
 [[services]]
 name = "api"
 source = "backend"
+dockerfilePath = "Dockerfile"
 healthcheckPath = "/health"
 
 [[services]]
 name = "frontend"
 source = "frontend"
+dockerfilePath = "Dockerfile"
 healthcheckPath = "/"
 
+
+[deploy]
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
