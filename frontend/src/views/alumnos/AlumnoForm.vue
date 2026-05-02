@@ -113,22 +113,22 @@ const onSubmit = handleSubmit(async (values) => {
               v-model="rut" 
               type="text" 
               placeholder="12.345.678-9"
-              class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              class="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-slate-900 placeholder-slate-400"
               :class="errors.rut ? 'border-red-300' : 'border-slate-200'"
             />
             <p v-if="errors.rut" class="text-red-500 text-xs mt-1">{{ errors.rut }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1">Nombres</label>
-            <input v-model="nombre" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input v-model="nombre" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 placeholder-slate-400" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1">Apellido Paterno</label>
-            <input v-model="apellido_paterno" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input v-model="apellido_paterno" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 placeholder-slate-400" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1">Apellido Materno</label>
-            <input v-model="apellido_materno" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input v-model="apellido_materno" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 placeholder-slate-400" />
           </div>
         </div>
       </section>
@@ -142,19 +142,19 @@ const onSubmit = handleSubmit(async (values) => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1">Nombres</label>
-            <input v-model="apoNombre" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input v-model="apoNombre" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 placeholder-slate-400" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1">Apellido Paterno</label>
-            <input v-model="apoApaterno" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input v-model="apoApaterno" type="text" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 placeholder-slate-400" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1">Email de Contacto</label>
-            <input v-model="apoEmail" type="email" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input v-model="apoEmail" type="email" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 placeholder-slate-400" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1">Teléfono</label>
-            <input v-model="apoTelefono" type="text" placeholder="+56 9..." class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input v-model="apoTelefono" type="text" placeholder="+56 9..." class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 placeholder-slate-400" />
           </div>
         </div>
       </section>

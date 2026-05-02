@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import api from '../../services/api';
+import { alumnoService } from '../../services/alumno.service';
 
 const alumnos = ref<any[]>([]);
 const loading = ref(true);
+const importMessage = ref('');
+const importError = ref('');
+const isImporting = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 async function fetchAlumnos() {
   loading.value = true;
@@ -17,6 +22,32 @@ async function fetchAlumnos() {
   }
 }
 
+async function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (!target.files || target.files.length === 0) return;
+  
+  const file = target.files[0];
+  isImporting.value = true;
+  importMessage.value = '';
+  importError.value = '';
+  
+  try {
+    const result = await alumnoService.importarCSV(file);
+    importMessage.value = `Importación exitosa: ${result.importados} alumnos importados. ${result.errores.length > 0 ? result.errores.length + ' errores.' : ''}`;
+    await fetchAlumnos();
+  } catch (error: any) {
+    console.error('Error importing CSV:', error);
+    importError.value = error.response?.data?.detail || 'Error al importar el archivo CSV.';
+  } finally {
+    isImporting.value = false;
+    if (fileInput.value) fileInput.value.value = ''; // Reset input
+  }
+}
+
+function triggerFileInput() {
+  fileInput.value?.click();
+}
+
 onMounted(fetchAlumnos);
 </script>
 
@@ -28,14 +59,26 @@ onMounted(fetchAlumnos);
         <p class="text-slate-400">Listado de alumnos y apoderados</p>
       </div>
       <div class="flex gap-3">
-        <button class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-          Importar CSV
+        <input type="file" ref="fileInput" @change="handleFileUpload" accept=".csv" class="hidden" />
+        <button 
+          @click="triggerFileInput"
+          :disabled="isImporting"
+          class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+        >
+          {{ isImporting ? 'Importando...' : 'Importar CSV' }}
         </button>
         <router-link to="/alumnos/nuevo" class="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary-600/20">
           Nuevo Alumno
         </router-link>
       </div>
     </header>
+
+    <div v-if="importMessage" class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 px-4 py-3 rounded-lg text-sm">
+      {{ importMessage }}
+    </div>
+    <div v-if="importError" class="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-lg text-sm">
+      {{ importError }}
+    </div>
 
     <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
