@@ -1,7 +1,12 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <HelloWorld />
+  <RouterView />
 </template>
+
+<style>
+/* Estilos globales básicos */
+body {
+  margin: 0;
+  padding: 0;
+}
+</style>
+
