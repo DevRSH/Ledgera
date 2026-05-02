@@ -27,3 +27,9 @@ Thumbs.db
 # Agent Metadata
 .agents/
 .gemini/
+backend/test.db
+backend/*.db
+frontend/dist/
+backend/test.db
+backend/*.db
+frontend/dist/
