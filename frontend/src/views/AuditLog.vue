@@ -19,7 +19,7 @@ async function fetchLogs() {
   loading.value = true;
   try {
     const response = await api.get('/auditoria/log');
-    logs.value = response.data;
+    logs.value = response.data || [];
   } catch (error) {
     console.error('Error fetching logs:', error);
   } finally {

@@ -15,11 +15,10 @@ async function fetchData() {
       api.get(`/cuotas/config?año=${selectedYear.value}`)
     ]);
     
-    alumnos.value = alRes.data;
-    config.value = confRes.data;
+    alumnos.value = alRes.data.data || [];
+    config.value = confRes.data || [];
     
     // For each alumno, fetch their debt status
-    // Note: In production, this should be a bulk endpoint
     for (const al of alumnos.value) {
       const statusRes = await api.get(`/cuotas/estado/${al.id}?año=${selectedYear.value}`);
       al.status = statusRes.data;

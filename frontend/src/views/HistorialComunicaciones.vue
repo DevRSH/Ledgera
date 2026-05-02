@@ -9,7 +9,7 @@ async function fetchHistorial() {
   loading.value = true;
   try {
     const response = await api.get('/comunicaciones/historial');
-    historial.value = response.data;
+    historial.value = response.data.data || [];
   } catch (error) {
     console.error('Error fetching communication history:', error);
   } finally {
