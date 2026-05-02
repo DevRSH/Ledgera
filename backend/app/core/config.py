@@ -34,4 +34,13 @@ class Settings(BaseSettings):
         case_sensitive=True
     )
 
+    def __init__(self, **values):
+        super().__init__(**values)
+        # Fix for Railway/Render/Heroku Postgres URLs
+        if self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif self.DATABASE_URL.startswith("postgresql://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 settings = Settings()
+
