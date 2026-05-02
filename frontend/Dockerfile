@@ -8,7 +8,11 @@ RUN npm install --legacy-peer-deps
 
 COPY frontend/ .
 
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
+
 
 # Serve with Nginx
 FROM nginx:alpine
