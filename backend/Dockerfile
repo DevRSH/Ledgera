@@ -10,11 +10,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
-COPY requirements.txt .
+# We copy from the context (Root of the repo)
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
-COPY . .
+# Copy backend application code only
+COPY backend/ .
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1
@@ -22,5 +23,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose port
 EXPOSE 8000
 
-# Start command
+# Start command (Since we copied the content of backend/ to /app, app.main:app should work)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
