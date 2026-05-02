@@ -2,7 +2,17 @@
 import { ref, onMounted } from 'vue';
 import api from '../services/api';
 
-const logs = ref([]);
+interface AuditEntry {
+  id: string;
+  created_at: string;
+  accion: string;
+  entidad_tipo: string;
+  entidad_id: string;
+  ip_address: string;
+}
+
+const logs = ref<AuditEntry[]>([]);
+
 const loading = ref(false);
 
 async function fetchLogs() {
