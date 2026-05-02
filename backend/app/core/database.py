@@ -3,11 +3,22 @@ from app.core.config import settings
 from typing import AsyncGenerator
 
 # Database engine setup
+# SQLite doesn't support pool_size/max_overflow
+is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+
+engine_kwargs = {
+    "echo": settings.ENVIRONMENT == "development",
+}
+
+if not is_sqlite:
+    engine_kwargs.update({
+        "pool_size": 5,
+        "max_overflow": 10,
+    })
+
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.ENVIRONMENT == "development",
-    pool_size=5,
-    max_overflow=10,
+    **engine_kwargs
 )
 
 # Session factory

@@ -36,7 +36,13 @@ const router = createRouter({
           path: 'cuotas',
           name: 'Cuotas',
           component: () => import('../views/cuotas/CuotaPanel.vue')
+        },
+        {
+          path: 'documentos',
+          name: 'Documentos',
+          component: () => import('../views/DocumentoGestoria.vue')
         }
+
 
       ]
     }

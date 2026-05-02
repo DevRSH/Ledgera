@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; color: #333; margin: 0; padding: 40px; }
+        .header { text-align: center; border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { font-size: 24px; font-weight: bold; color: #10b981; }
+        .folio { float: right; font-family: monospace; font-size: 18px; color: #666; }
+        .title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .field { margin-bottom: 15px; }
+        .label { font-size: 12px; color: #666; display: block; }
+        .value { font-size: 14px; font-weight: bold; }
+        .monto { font-size: 24px; color: #10b981; margin-top: 20px; }
+        .qr-section { text-align: center; margin-top: 40px; }
+        .footer { margin-top: 50px; font-size: 10px; color: #999; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="folio">FOLIO: {{ folio }}</div>
+        <div class="logo">TesoApp</div>
+        <div>{{ colegio }} - {{ curso }}</div>
+    </div>
+
+    <div class="title">COMPROBANTE DE PAGO</div>
+
+    <div class="content">
+        <div class="field">
+            <span class="label">ALUMNO</span>
+            <span class="value">{{ alumno_nombre }}</span>
+        </div>
+        <div class="field">
+            <span class="label">CONCEPTO</span>
+            <span class="value">Cuota {{ mes_año }}</span>
+        </div>
+        <div class="field">
+            <span class="label">FORMA DE PAGO</span>
+            <span class="value">{{ forma_pago }}</span>
+        </div>
+        <div class="field">
+            <span class="label">FECHA DE PAGO</span>
+            <span class="value">{{ fecha }}</span>
+        </div>
+    </div>
+
+    <div class="monto">TOTAL: {{ monto }} CLP</div>
+
+    <div class="qr-section">
+        <img src="data:image/png;base64,{{ qr_base64 }}" width="150" height="150">
+        <div style="font-size: 10px; margin-top: 5px;">Escanea para verificar la autenticidad</div>
+    </div>
+
+    <div class="footer">
+        Este documento fue generado automáticamente por TesoApp.<br>
+        Emitido el: {{ fecha }} | Recibido por: {{ recibido_por }}
+    </div>
+</body>
+</html>

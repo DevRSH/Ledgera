@@ -15,6 +15,10 @@ from app.models.folio import FolioCounter
 from app.models.alumno import Alumno, Apoderado
 from app.models.movimiento import Movimiento, CategoriaMovimiento
 from app.models.cuota import ConfiguracionCuota, PagoCuota, Condonacion
+from app.models.documento import Documento
+from app.models.vale import Vale
+from app.models.comprobante import ComprobantePago
+
 
 
 # this is the Alembic Config object

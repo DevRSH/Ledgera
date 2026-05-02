@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.core.database import get_db
 from app.models.movimiento import Movimiento
+from app.models.comprobante import ComprobantePago
+
 from app.models.tenant import Tenant
 import uuid
 
@@ -56,3 +58,32 @@ async def get_public_movimientos(
             "categoria_id": m.categoria_id
         } for m in movs
     ]
+
+@router.get("/verify/{folio}")
+async def verificar_comprobante(
+    folio: str, 
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Endpoint called from the QR on the printed receipt.
+    """
+    result = await db.execute(
+        select(ComprobantePago).filter(
+            ComprobantePago.folio == folio,
+            ComprobantePago.anulado == False
+        )
+    )
+    comp = result.scalar_one_or_none()
+    
+    if not comp:
+        return {"valido": False, "motivo": "Comprobante no encontrado o anulado"}
+    
+    return {
+        "valido": True,
+        "folio": comp.folio,
+        "concepto": f"Cuota {comp.mes}/{comp.año}",
+        "monto": comp.monto,
+        "fecha_pago": comp.fecha_pago.isoformat(),
+        "emitido_en": comp.created_at.isoformat(),
+    }
+

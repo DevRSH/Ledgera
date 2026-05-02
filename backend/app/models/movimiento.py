@@ -1,6 +1,7 @@
 import uuid
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List
+
 from sqlalchemy import String, Integer, ForeignKey, Date, DateTime, Boolean, CheckConstraint, Index, UniqueConstraint
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -45,6 +46,10 @@ class Movimiento(Base):
     categoria: Mapped[Optional["CategoriaMovimiento"]] = relationship()
     registrador: Mapped["Usuario"] = relationship(foreign_keys=[registrado_por])
     anulador: Mapped[Optional["Usuario"]] = relationship(foreign_keys=[anulado_por])
+    documentos: Mapped[List["Documento"]] = relationship(
+        secondary="movimiento_documentos", back_populates="movimientos"
+    )
+
 
     __table_args__ = (
         CheckConstraint("tipo IN ('ingreso', 'egreso')", name="check_movimiento_tipo"),
