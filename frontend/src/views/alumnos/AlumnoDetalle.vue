@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted } from 'vue';
 import { alumnoService } from '../../services/alumno.service';
 import { cuotaService } from '../../services/cuota.service';
 import EstadoBadge from '../../components/shared/EstadoBadge.vue';
 import MontoDisplay from '../../components/shared/MontoDisplay.vue';
-import FolioTag from '../../components/shared/FolioTag.vue';
 import RegistrarPago from '../cuotas/RegistrarPago.vue';
 
 const props = defineProps<{

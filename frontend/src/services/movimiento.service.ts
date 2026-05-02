@@ -1,5 +1,4 @@
 import api from './api';
-import type { Movimiento } from '../types/api.types';
 
 export const movimientoService = {
   async getMovimientos(params: any) {

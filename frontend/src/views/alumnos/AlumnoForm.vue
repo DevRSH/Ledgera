@@ -13,7 +13,6 @@ const props = defineProps<{
 
 const router = useRouter();
 const loading = ref(false);
-const showSuplente = ref(false);
 
 // Schema de validación con Zod
 const schema = toTypedSchema(zod.object({
@@ -35,18 +34,17 @@ const schema = toTypedSchema(zod.object({
   })
 }));
 
-const { values, errors, defineField, handleSubmit, setValues } = useForm({
+const { errors, defineField, handleSubmit, setValues } = useForm({
   validationSchema: schema,
   initialValues: {
     apoderado_titular: {}
   }
 });
 
-const [rut, rutProps] = defineField('rut');
-const [nombre, nombreProps] = defineField('nombre');
-const [apellido_paterno, apaternoProps] = defineField('apellido_paterno');
-const [apellido_materno, amaternoProps] = defineField('apellido_materno');
-const [fecha_nacimiento] = defineField('fecha_nacimiento');
+const [rut] = defineField('rut');
+const [nombre] = defineField('nombre');
+const [apellido_paterno] = defineField('apellido_paterno');
+const [apellido_materno] = defineField('apellido_materno');
 
 const [apoNombre] = defineField('apoderado_titular.nombre');
 const [apoApaterno] = defineField('apoderado_titular.apellido_paterno');

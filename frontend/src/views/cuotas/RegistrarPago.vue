@@ -15,7 +15,6 @@ const emit = defineEmits(['close', 'created']);
 const loading = ref(false);
 const step = ref(1); // 1: Form, 2: Success
 const generatedFolio = ref('');
-const resultPdfUrl = ref('');
 const alumnos = ref<any[]>([]);
 
 const form = ref({

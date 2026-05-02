@@ -8,13 +8,12 @@ import MovimientoForm from './MovimientoForm.vue';
 import { useAuthStore } from '../../stores/auth.store';
 
 const movimientoStore = useMovimientoStore();
-const { movimientos, loading, saldoActual } = storeToRefs(movimientoStore);
+const { movimientos, saldoActual } = storeToRefs(movimientoStore);
 const authStore = useAuthStore();
 
 const showCreateModal = ref(false);
 const showAnularDialog = ref(false);
 const selectedMovId = ref<string | null>(null);
-const motivoAnulacion = ref('');
 
 onMounted(() => {
   movimientoStore.fetchMovimientos();
