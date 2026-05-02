@@ -5,6 +5,7 @@ import { movimientoService } from '../../services/movimiento.service';
 const emit = defineEmits(['close', 'created']);
 
 const loading = ref(false);
+const formError = ref('');
 const categorias = ref<any[]>([]);
 
 const form = ref({
@@ -24,10 +25,14 @@ onMounted(async () => {
 
 const submit = async () => {
   loading.value = true;
+  formError.value = '';
   try {
     await movimientoService.crearMovimiento(form.value);
     emit('created');
     emit('close');
+  } catch (err: any) {
+    console.error(err);
+    formError.value = err.response?.data?.detail || 'Error al registrar el movimiento.';
   } finally {
     loading.value = false;
   }
@@ -100,6 +105,10 @@ const submit = async () => {
               placeholder="Ej: Pago de materiales escolares..."
               required
             ></textarea>
+          </div>
+
+          <div v-if="formError" class="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-lg text-sm">
+            {{ formError }}
           </div>
 
           <button 

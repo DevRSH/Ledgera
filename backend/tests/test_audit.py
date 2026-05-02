@@ -22,7 +22,7 @@ async def test_audit_registra_evento_manual(db: AsyncSession):
     result = await db.execute(select(AuditLog).filter(AuditLog.accion == "TEST_ACTION"))
     log = result.scalars().first()
     assert log is not None
-    assert log.actor_email == "test@test.com"
+    assert log.usuario_id == actor_id
 
 @pytest.mark.asyncio
 async def test_audit_log_no_editable(client: AsyncClient):

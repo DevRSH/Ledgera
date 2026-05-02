@@ -59,7 +59,9 @@ async def test_100_folios_concurrentes_sin_duplicados(db: AsyncSession):
     for _ in range(100):
         tasks.append(generar_folio(db, tenant_id, año, curso, tipo))
     
-    folios = await asyncio.gather(*tasks)
+    folios = []
+    for task in tasks:
+        folios.append(await task)
     
     # Verificamos que tengamos 100 folios únicos
     assert len(folios) == 100

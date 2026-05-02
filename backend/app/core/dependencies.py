@@ -17,17 +17,25 @@ reusable_oauth2 = OAuth2PasswordBearer(
 )
 
 async def get_current_user(
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    token: str = Depends(reusable_oauth2)
 ) -> Usuario:
-
-    # DEBUG BYPASS: Return first active user (admin) without checking token
-    result = await db.execute(select(Usuario).filter(Usuario.activo == True))
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except (JWTError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+    result = await db.execute(select(Usuario).filter(Usuario.id == token_data.sub))
     user = result.scalars().first()
-    
     if not user:
-        # Fallback if no user exists yet
-        raise HTTPException(status_code=404, detail="No active users found. Please run seeding.")
-        
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.activo:
+        raise HTTPException(status_code=400, detail="Inactive user")
     return user
 
 def require_role(allowed_roles: list[str]):

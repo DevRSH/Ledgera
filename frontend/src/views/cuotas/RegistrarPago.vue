@@ -13,6 +13,7 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'created']);
 
 const loading = ref(false);
+const formError = ref('');
 const step = ref(1); // 1: Form, 2: Success
 const generatedFolio = ref('');
 const alumnos = ref<any[]>([]);
@@ -34,14 +35,16 @@ onMounted(async () => {
 
 const submit = async () => {
   loading.value = true;
+  formError.value = '';
   try {
     const res = await cuotaService.registrarPago(form.value);
     generatedFolio.value = res.folio;
     // resultPdfUrl.value = res.pdf_url;
     step.value = 2;
     emit('created');
-  } catch (err) {
+  } catch (err: any) {
     console.error(err);
+    formError.value = err.response?.data?.detail || 'Error al registrar el pago.';
   } finally {
     loading.value = false;
   }
@@ -100,6 +103,10 @@ const submit = async () => {
                   {{ fp }}
                 </button>
               </div>
+            </div>
+
+            <div v-if="formError" class="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-lg text-sm">
+              {{ formError }}
             </div>
 
             <button 

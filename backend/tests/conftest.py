@@ -7,6 +7,9 @@ from app.core.database import get_db
 from app.main import app
 from httpx import AsyncClient, ASGITransport
 
+import uuid
+from app.models.usuario import Usuario
+
 # Use in-memory SQLite for tests
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -44,7 +47,7 @@ async def client(db):
 @pytest_asyncio.fixture
 async def user_tesorero(db: AsyncSession):
     user = Usuario(
-        id=uuid.uuid4(), email="tesorero@test.com", password_hash="hash",
+        id=uuid.uuid4(), email=f"tesorero_{uuid.uuid4()}@test.com", password_hash="hash",
         rol="TESORERO", tenant_id=uuid.uuid4(), activo=True
     )
     db.add(user)
@@ -54,7 +57,7 @@ async def user_tesorero(db: AsyncSession):
 @pytest_asyncio.fixture
 async def user_auditor(db: AsyncSession):
     user = Usuario(
-        id=uuid.uuid4(), email="auditor@test.com", password_hash="hash",
+        id=uuid.uuid4(), email=f"auditor_{uuid.uuid4()}@test.com", password_hash="hash",
         rol="AUDITOR", tenant_id=uuid.uuid4(), activo=True
     )
     db.add(user)
@@ -64,7 +67,7 @@ async def user_auditor(db: AsyncSession):
 @pytest_asyncio.fixture
 async def user_directiva(db: AsyncSession):
     user = Usuario(
-        id=uuid.uuid4(), email="directiva@test.com", password_hash="hash",
+        id=uuid.uuid4(), email=f"directiva_{uuid.uuid4()}@test.com", password_hash="hash",
         rol="DIRECTIVA", tenant_id=uuid.uuid4(), activo=True
     )
     db.add(user)
@@ -74,7 +77,7 @@ async def user_directiva(db: AsyncSession):
 @pytest_asyncio.fixture
 async def user_apoderado(db: AsyncSession):
     user = Usuario(
-        id=uuid.uuid4(), email="apoderado@test.com", password_hash="hash",
+        id=uuid.uuid4(), email=f"apoderado_{uuid.uuid4()}@test.com", password_hash="hash",
         rol="APODERADO", tenant_id=uuid.uuid4(), activo=True
     )
     db.add(user)

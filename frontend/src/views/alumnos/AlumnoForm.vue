@@ -13,6 +13,7 @@ const props = defineProps<{
 
 const router = useRouter();
 const loading = ref(false);
+const formError = ref('');
 
 // Schema de validación con Zod
 const schema = toTypedSchema(zod.object({
@@ -67,6 +68,7 @@ onMounted(async () => {
 
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true;
+  formError.value = '';
   try {
     if (props.id) {
       await alumnoService.actualizarAlumno(props.id, values);
@@ -74,8 +76,9 @@ const onSubmit = handleSubmit(async (values) => {
       await alumnoService.crearAlumno(values);
     }
     router.push({ name: 'Alumnos' });
-  } catch (err) {
+  } catch (err: any) {
     console.error(err);
+    formError.value = err.response?.data?.detail || 'Error al guardar el alumno. Verifique los datos.';
   } finally {
     loading.value = false;
   }
@@ -155,6 +158,10 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
         </div>
       </section>
+
+      <div v-if="formError" class="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-lg text-sm mb-4">
+        {{ formError }}
+      </div>
 
       <div class="flex justify-end space-x-4">
         <button 
