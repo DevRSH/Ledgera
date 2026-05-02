@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from app.main import limiter
+from app.core.limiter import limiter
 
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,7 +36,7 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
-    elif not user.is_active:
+    elif not user.activo:
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

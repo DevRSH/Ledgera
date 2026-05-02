@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useAuthStore } from '../stores/auth.store';
 
 let baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 // Limpieza automática de /v1 duplicados
@@ -12,8 +11,11 @@ const api = axios.create({
 });
 
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
+  // Dynamic import to avoid circular dependency
+  const { useAuthStore } = await import('../stores/auth.store');
   const authStore = useAuthStore();
+  
   if (authStore.accessToken) {
     config.headers.Authorization = `Bearer ${authStore.accessToken}`;
   }
@@ -23,8 +25,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const authStore = useAuthStore();
     if (error.response?.status === 401) {
+      const { useAuthStore } = await import('../stores/auth.store');
+      const authStore = useAuthStore();
       authStore.logout();
       // Handle redirect to login if needed
     }

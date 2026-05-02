@@ -18,6 +18,19 @@ class Alumno(Base):
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
     observaciones: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
+    @property
+    def apoderado_titular(self) -> Optional["Apoderado"]:
+        for ap in self.apoderados:
+            if ap.tipo == 'titular':
+                return ap
+        return None
+
+    @property
+    def estado_deuda(self) -> Optional[str]:
+        # Placeholder to avoid Pydantic errors. 
+        # Real calculation should be done via cuota_service if needed.
+        return None
+
     # Relationships
     apoderados: Mapped[List["Apoderado"]] = relationship(back_populates="alumno", cascade="all, delete-orphan")
     pagos: Mapped[List["PagoCuota"]] = relationship(back_populates="alumno")
