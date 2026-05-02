@@ -1,6 +1,8 @@
 from datetime import timedelta
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from app.main import limiter
+
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -17,22 +19,25 @@ import pyotp
 router = APIRouter()
 
 @router.post("/login", response_model=LoginResponse)
+@limiter.limit("5/minute")
 async def login(
-    request: LoginRequest,
+    request: Request,
+    login_request: LoginRequest,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     """
     Standard login endpoint.
     """
-    result = await db.execute(select(Usuario).filter(Usuario.email == request.email))
+    result = await db.execute(select(Usuario).filter(Usuario.email == login_request.email))
     user = result.scalars().first()
     
-    if not user or not security.verify_password(request.password, user.password_hash):
+    if not user or not security.verify_password(login_request.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
-    elif not user.activo:
+    elif not user.is_active:
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",

@@ -51,7 +51,13 @@ const router = createRouter({
           path: 'reportes',
           name: 'Reportes',
           component: () => import('../views/ReportesPanel.vue')
+        },
+        {
+          path: 'auditoria',
+          name: 'Auditoria',
+          component: () => import('../views/AuditLog.vue')
         }
+
 
 
 
