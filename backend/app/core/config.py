@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     RESEND_API_KEY: Optional[str] = None
     
     # CORS
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "http://localhost:5173,https://ledgera-app.up.railway.app"
     
     model_config = SettingsConfigDict(
         env_file=".env",
