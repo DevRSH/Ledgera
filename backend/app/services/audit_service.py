@@ -1,7 +1,8 @@
 import uuid
 from typing import Optional, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.encoders import jsonable_encoder
 from app.models.audit import AuditLog
 
 # Acciones estándar
@@ -41,11 +42,11 @@ async def registrar_evento(
         accion=accion,
         entidad_tipo=entidad,
         entidad_id=entidad_id,
-        payload_antes=payload_antes,
-        payload_despues=payload_despues,
+        payload_antes=jsonable_encoder(payload_antes) if payload_antes else None,
+        payload_despues=jsonable_encoder(payload_despues) if payload_despues else None,
         ip_address=ip_address,
-        user_agent=None, # Opcional: podría extraerse del request context si estuviera disponible
-        created_at=datetime.utcnow()
+        user_agent=None,
+        created_at=datetime.now(timezone.utc)
     )
     
     db.add(log_entry)

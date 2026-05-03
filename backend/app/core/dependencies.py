@@ -30,7 +30,12 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
-    result = await db.execute(select(Usuario).filter(Usuario.id == token_data.sub))
+    import uuid
+    try:
+        user_id = uuid.UUID(token_data.sub)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+    result = await db.execute(select(Usuario).filter(Usuario.id == user_id))
     user = result.scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

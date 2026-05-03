@@ -17,14 +17,14 @@ async def test_crear_movimiento_solo_tesorero(client: AsyncClient, token_tesorer
     
     # Con apoderado -> 403
     resp_apo = await client.post(
-        "/v1/movimientos", json=mov_data,
+        "/v1/movimientos/", json=mov_data,
         headers={"Authorization": f"Bearer {token_apoderado}"}
     )
     assert resp_apo.status_code == 403
     
     # Con tesorero -> 201
     resp_teso = await client.post(
-        "/v1/movimientos", json=mov_data,
+        "/v1/movimientos/", json=mov_data,
         headers={"Authorization": f"Bearer {token_tesorero}"}
     )
     assert resp_teso.status_code == 201
@@ -34,14 +34,14 @@ async def test_anular_movimiento_solo_directiva(client: AsyncClient, token_tesor
     # Anular requiere rol DIRECTIVA
     resp_teso = await client.post(
         "/v1/movimientos/00000000-0000-0000-0000-000000000000/anular",
-        json={"motivo": "Test"},
+        json={"motivo": "Motivo muy largo para test"},
         headers={"Authorization": f"Bearer {token_tesorero}"}
     )
     assert resp_teso.status_code == 403
     
     resp_dir = await client.post(
         "/v1/movimientos/00000000-0000-0000-0000-000000000000/anular",
-        json={"motivo": "Test"},
+        json={"motivo": "Motivo muy largo para test"},
         headers={"Authorization": f"Bearer {token_directiva}"}
     )
     # 404 porque el ID es fake, pero no 403

@@ -48,7 +48,7 @@ async def client(db):
 async def user_tesorero(db: AsyncSession):
     user = Usuario(
         id=uuid.uuid4(), email=f"tesorero_{uuid.uuid4()}@test.com", password_hash="hash",
-        rol="TESORERO", tenant_id=uuid.uuid4(), activo=True
+        rol="TESORERO", tenant_id=uuid.uuid4(), activo=True, nombre="Tesorero Test"
     )
     db.add(user)
     await db.commit()
@@ -58,7 +58,7 @@ async def user_tesorero(db: AsyncSession):
 async def user_auditor(db: AsyncSession):
     user = Usuario(
         id=uuid.uuid4(), email=f"auditor_{uuid.uuid4()}@test.com", password_hash="hash",
-        rol="AUDITOR", tenant_id=uuid.uuid4(), activo=True
+        rol="AUDITOR", tenant_id=uuid.uuid4(), activo=True, nombre="Auditor Test"
     )
     db.add(user)
     await db.commit()
@@ -68,7 +68,7 @@ async def user_auditor(db: AsyncSession):
 async def user_directiva(db: AsyncSession):
     user = Usuario(
         id=uuid.uuid4(), email=f"directiva_{uuid.uuid4()}@test.com", password_hash="hash",
-        rol="DIRECTIVA", tenant_id=uuid.uuid4(), activo=True
+        rol="DIRECTIVA", tenant_id=uuid.uuid4(), activo=True, nombre="Directiva Test"
     )
     db.add(user)
     await db.commit()
@@ -78,7 +78,7 @@ async def user_directiva(db: AsyncSession):
 async def user_apoderado(db: AsyncSession):
     user = Usuario(
         id=uuid.uuid4(), email=f"apoderado_{uuid.uuid4()}@test.com", password_hash="hash",
-        rol="APODERADO", tenant_id=uuid.uuid4(), activo=True
+        rol="APODERADO", tenant_id=uuid.uuid4(), activo=True, nombre="Apoderado Test"
     )
     db.add(user)
     await db.commit()
